@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title></title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.17.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.17.0/mapbox-gl.css' rel='stylesheet' />
+    <link href='../mapboxoverride.css' rel='stylesheet' />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400italic,600' rel='stylesheet' type='text/css'>
+    <style>
+        html,body { margin:0; padding:0;}
+        #map { position:absolute; top:0; bottom:0; width:100%;}
+    </style>
+</head>
+<body>
+    
+<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v1.0.0/mapbox-gl-geocoder.js'></script>
+<link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v1.0.0/mapbox-gl-geocoder.css' type='text/css' />
+    
+<div id='map'></div>
+
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoiY2FydGlmYWN0IiwiYSI6IjliMDg0NzQ1ODZiMTM0YTAzODQ5Y2ZhNzVlMGEyOTI5In0.ZGKQW8lwsLIAClTVM2jMJQ';
+    
+    // load and set map view
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/cartifact/cimztfced001mafm22cuws2w2',
+    center: [-95.431546, 39.975465],
+    zoom: 4
+});
+
+    // pull in gramercy property location data
+map.on('style.load', function () {
+    map.addSource("markers", {
+        "type": "geojson",
+        "data": '../gramercy.geojson'
+    });
+    
+    // add gramercy marker layer
+    map.addLayer({
+        "id": "markers",
+        "type": "symbol",
+        "source": "markers",
+        "layout": {
+            "icon-image": "cullinane-gct",
+            "icon-size": 0.7,
+            "icon-allow-overlap": true
+        }
+    });
+});
+
+    
+    // popups ready but turned off
+    var popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false
+});
+
+map.on('mousemove', function(e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['markers'] });
+    // cursor style changed during hover
+    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+
+    if (!features.length) {
+        popup.remove();
+        return;
+    }
+
+    var feature = features[0];
+
+    // populate popup
+    popup.setLngLat(feature.geometry.coordinates)
+        .setHTML('<div class="marker-title">' + feature.properties.property + '</div>' + '<div class="marker-subtitle">' + feature.properties.city + '</div>' + '<img src="../sampleimage.jpg" style="padding-top:10px; padding-bottom:10px;" onerror="this.style.display=\'none\';"></img>' +
+'<div>' + 'Asset Type: ' + feature.properties.type + 
+'<br>' + 'Rentable Square Footage: ' + feature.properties.sf + '</div>')
+        .addTo(map);
+});
+    
+    // zoom and rotation controls
+    map.addControl(new mapboxgl.Navigation());
+    map.addControl(new mapboxgl.Geocoder());
+
+</script>
+    
+</body>
+</html>
